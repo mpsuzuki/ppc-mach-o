@@ -1,0 +1,9 @@
+[submodule "cctools"]
+	path = cctools
+	url = https://github.com/apple-oss-distributions/cctools.git
+[submodule "ppc-libunwind"]
+	path = ppc-libunwind
+	url = https://github.com/mpsuzuki/ppc-libunwind
+[submodule "ppc-ld64"]
+	path = ppc-ld64
+	url = https://github.com/mpsuzuki/ppc-ld64
