@@ -1,0 +1,26 @@
+VERS_STRING_PATH ?= `pwd`/vers_string
+VERS_STRING_GIT ?= git
+LLVM_CONFIG ?= llvm-config-mp-3.4
+.PHONY: _ld64 _cctools
+
+all:
+	make _ld64
+	make _cctools
+
+clean:
+	rm -rf prunetrie
+	make -C ppc-ld64 clean
+	make -C cctools clean
+
+_ld64:
+	make -C ppc-ld64 CCTOOLS=../cctools LLDB=../ppc-libunwind
+	make -C ppc-ld64 install-prune-trie PREFIX=../prunetrie
+
+_cctools:
+	env \
+	PATH=${PATH}:$(VERS_STRING_PATH) \
+	VERS_STRING_GIT=$(VERS_STRING_GIT) \
+	make -C cctools \
+	TRIE="-DTRIE_SUPPORT -I"`pwd`"/prunetrie/include/ppc-ld64/" \
+	LIB_PRUNETRIE=`pwd`/prunetrie/libexec/ppc-ld64/libprunetrie.a \
+	LTO="-DLTO_SUPPORT -I"`$(LLVM_CONFIG) --includedir`
