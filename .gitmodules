@@ -7,3 +7,6 @@
 [submodule "ppc-ld64"]
 	path = ppc-ld64
 	url = https://github.com/mpsuzuki/ppc-ld64
+[submodule "vers_string"]
+	path = vers_string
+	url = https://github.com/mpsuzuki/vers_string
