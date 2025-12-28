@@ -6,7 +6,7 @@ VERS_STRING_PATH_LOCAL := `pwd`/vers_string
 VERS_STRING_PATH ?= $(VERS_STRING_PATH_LOCAL)
 VERS_STRING_GIT ?= @GIT@
 LLVM_CONFIG ?= @LLVM_CONFIG@
-.PHONY: _ld64 _cctools
+.PHONY: _ld64 _cctools install-ld64 install-cctools install
 
 all:
 	$(MAKE) _ld64
@@ -48,25 +48,37 @@ _cctools:
 	LIB_PRUNETRIE=`pwd`/prunetrie/libexec/ppc-ld64/libprunetrie.a \
 	LTO="-DLTO_SUPPORT -I"`$(LLVM_CONFIG) --includedir`
 
+install: install-ld64 install-cctools
+
+install-ld64:
+	mkdir root || true
+	mkdir root/bin || true
+	$(INSTALL) -c -m 755 ppc-ld64/ld64 root/bin/ld64
+	(cd root/bin && \
+	rm -f ld ppc-apple-darwin9-ld ppc64-apple-darwin9-ld && \
+	$(LN_S) ld64 ld && \
+	$(LN_S) ld ppc-apple-darwin9-ld && \
+	$(LN_S) ld ppc64-apple-darwin9-ld )
+
 install-cctools:
-	mkdir root
-	mkdir root/bin
-	mkdir root/include
-	mkdir root/include/mach-o
-	mkdir root/lib
-	mkdir root/libexec
-	mkdir root/libexec/gcc
-	mkdir root/libexec/gcc/darwin
-	mkdir root/libexec/gcc/darwin/arm
-	mkdir root/libexec/gcc/darwin/hppa
-	mkdir root/libexec/gcc/darwin/i386
-	mkdir root/libexec/gcc/darwin/i860
-	mkdir root/libexec/gcc/darwin/m68k
-	mkdir root/libexec/gcc/darwin/m88k
-	mkdir root/libexec/gcc/darwin/ppc
-	mkdir root/libexec/gcc/darwin/ppc64
-	mkdir root/libexec/gcc/darwin/sparc
-	mkdir root/libexec/gcc/darwin/x86_64
+	mkdir root || true
+	mkdir root/bin || true
+	mkdir root/include || true
+	mkdir root/include/mach-o || true
+	mkdir root/lib || true
+	mkdir root/libexec || true
+	mkdir root/libexec/gcc || true
+	mkdir root/libexec/gcc/darwin || true
+	mkdir root/libexec/gcc/darwin/arm || true
+	mkdir root/libexec/gcc/darwin/hppa || true
+	mkdir root/libexec/gcc/darwin/i386 || true
+	mkdir root/libexec/gcc/darwin/i860 || true
+	mkdir root/libexec/gcc/darwin/m68k || true
+	mkdir root/libexec/gcc/darwin/m88k || true
+	mkdir root/libexec/gcc/darwin/ppc || true
+	mkdir root/libexec/gcc/darwin/ppc64 || true
+	mkdir root/libexec/gcc/darwin/sparc || true
+	mkdir root/libexec/gcc/darwin/x86_64 || true
 
 	$(INSTALL) -c -m 755 ppc-cctools/as/driver_dir/driver root/bin/as
 	$(INSTALL) -c -m 755 ppc-cctools/as/a386_dir/as root/libexec/gcc/darwin/i386/as
@@ -88,7 +100,7 @@ install-cctools:
 	do \
 		$(INSTALL) -c -m 755 ppc-cctools/misc/$${misc_bin}.NEW root/bin/$${misc_bin} ; \
 	done
-	(cd root/bin && $(LN_S) libtool ranlib)
+	(cd root/bin && rm -f ranlib && $(LN_S) libtool ranlib)
 	$(INSTALL) -c -m 755 ppc-cctools/otool/otool.NEW root/bin/otool
 	$(INSTALL) -c -m 755 ppc-cctools/ar/ar.NEW root/bin/ar
 	$(INSTALL) -c -m 755 ppc-cctools/efitools/mtoc.NEW root/bin/mtoc
@@ -101,6 +113,8 @@ install-cctools:
 	$(INSTALL) -c -m 644 ppc-cctools/libmacho/ptmp_obj/libmacho_pg.a root/lib/libmacho_profile.a
 
 	(cd root/bin && for f in ar as libtool ld nm ranlib size strings strip ; do \
+		rm -f ppc-apple-darwin9-$$f ; \
+		rm -f ppc64-apple-darwin9-$$f ; \
 		$(LN_S) $$f ppc-apple-darwin9-$$f ; \
 		$(LN_S) $$f ppc64-apple-darwin9-$$f ; \
 	done )
