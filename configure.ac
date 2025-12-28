@@ -2,7 +2,6 @@ AC_PREREQ([2.62])
 AC_INIT([ppc-mach-o], [0.0.20251227], [https://github.com/mpsuzuki/ppc-mach-o/-/issues])
 
 AC_CHECK_PROGS(INSTALL, [ginstall gnu-install install.gnu install installbsd])
-AC_PROG_MKDIR_P
 AC_PROG_LN_S
 AC_PROG_SED
 AC_PROG_AWK
@@ -14,7 +13,6 @@ AC_PATH_PROG(GIT, [git])
 GIT=`basename "${GIT}"`
 
 AC_SUBST(INSTALL)
-AC_SUBST(MKDIR_P)
 AC_SUBST(LN_S)
 AC_SUBST(SED)
 AC_SUBST(AWK)

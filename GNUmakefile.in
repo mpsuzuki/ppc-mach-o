@@ -1,5 +1,4 @@
 LN_S ?= @LN_S@
-MKDIR_P ?= @MKDIR_P@
 INSTALL ?= @INSTALL@
 SED ?= @SED@
 AWK ?= @AWK@
@@ -50,20 +49,24 @@ _cctools:
 	LTO="-DLTO_SUPPORT -I"`$(LLVM_CONFIG) --includedir`
 
 install-cctools:
-	$(MKDIR_P) root/bin
-	$(MKDIR_P) root/include/mach-o
-	$(MKDIR_P) root/lib
-	$(MKDIR_P) root/libexec/gcc/darwin
-	$(MKDIR_P) root/libexec/gcc/darwin/arm
-	$(MKDIR_P) root/libexec/gcc/darwin/hppa
-	$(MKDIR_P) root/libexec/gcc/darwin/i386
-	$(MKDIR_P) root/libexec/gcc/darwin/i860
-	$(MKDIR_P) root/libexec/gcc/darwin/m68k
-	$(MKDIR_P) root/libexec/gcc/darwin/m88k
-	$(MKDIR_P) root/libexec/gcc/darwin/ppc
-	$(MKDIR_P) root/libexec/gcc/darwin/ppc64
-	$(MKDIR_P) root/libexec/gcc/darwin/sparc
-	$(MKDIR_P) root/libexec/gcc/darwin/x86_64
+	mkdir root
+	mkdir root/bin
+	mkdir root/include
+	mkdir root/include/mach-o
+	mkdir root/lib
+	mkdir root/libexec
+	mkdir root/libexec/gcc
+	mkdir root/libexec/gcc/darwin
+	mkdir root/libexec/gcc/darwin/arm
+	mkdir root/libexec/gcc/darwin/hppa
+	mkdir root/libexec/gcc/darwin/i386
+	mkdir root/libexec/gcc/darwin/i860
+	mkdir root/libexec/gcc/darwin/m68k
+	mkdir root/libexec/gcc/darwin/m88k
+	mkdir root/libexec/gcc/darwin/ppc
+	mkdir root/libexec/gcc/darwin/ppc64
+	mkdir root/libexec/gcc/darwin/sparc
+	mkdir root/libexec/gcc/darwin/x86_64
 
 	$(INSTALL) -c -m 755 ppc-cctools/as/driver_dir/driver root/bin/as
 	$(INSTALL) -c -m 755 ppc-cctools/as/a386_dir/as root/libexec/gcc/darwin/i386/as
