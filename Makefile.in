@@ -11,21 +11,21 @@ all:
 clean:
 	rm -rf prunetrie
 	make -C ppc-ld64 clean
-	make -C cctools clean
+	make -C ppc-cctools clean
 
 _ld64:
-	make -C ppc-ld64 CCTOOLS=../cctools LLDB=../ppc-libunwind
+	make -C ppc-ld64 CCTOOLS=../ppc-cctools LLDB=../ppc-libunwind
 	make -C ppc-ld64 install-prune-trie PREFIX=../prunetrie
 
-CCTOOLS_PROJECT := $(shell $(VERS_STRING_GIT) -C cctools remote | head -1 | xargs $(VERS_STRING_GIT) -C cctools remote get-url | xargs -I{} basename {} .git)
-CCTOOLS_VERSION := $(shell $(VERS_STRING_GIT) -C cctools describe --tags | sed "s/^$(CCTOOLS_PROJECT)-*//;s/-/./g")
+CCTOOLS_PROJECT := $(shell $(VERS_STRING_GIT) -C ppc-cctools remote | head -1 | xargs $(VERS_STRING_GIT) -C ppc-cctools remote get-url | xargs -I{} basename {} .git)
+CCTOOLS_VERSION := $(shell $(VERS_STRING_GIT) -C ppc-cctools describe --tags | sed "s/^$(CCTOOLS_PROJECT)-*//;s/-/./g")
 
 _cctools:
 	env \
 	PATH=${PATH}:$(VERS_STRING_PATH) \
 	VERS_STRING_GIT=$(VERS_STRING_GIT) \
 	RC_ProjectSourceVersion=$(CCTOOLS_VERSION) \
-	make -C cctools \
+	make -C ppc-cctools \
 	TRIE="-DTRIE_SUPPORT -I"`pwd`"/prunetrie/include/ppc-ld64/" \
 	LIB_PRUNETRIE=`pwd`/prunetrie/libexec/ppc-ld64/libprunetrie.a \
 	LTO="-DLTO_SUPPORT -I"`$(LLVM_CONFIG) --includedir`
@@ -33,7 +33,7 @@ _cctools:
 	PATH=${PATH}:$(VERS_STRING_PATH) \
 	VERS_STRING_GIT=$(VERS_STRING_GIT) \
 	RC_ProjectSourceVersion=$(CCTOOLS_VERSION) \
-	make -C cctools/libmacho \
+	make -C ppc-cctools/libmacho \
 	TRIE="-DTRIE_SUPPORT -I"`pwd`"/prunetrie/include/ppc-ld64/" \
 	LIB_PRUNETRIE=`pwd`/prunetrie/libexec/ppc-ld64/libprunetrie.a \
 	LTO="-DLTO_SUPPORT -I"`$(LLVM_CONFIG) --includedir`
@@ -54,42 +54,48 @@ install-cctools:
 	mkdir -p root/libexec/gcc/darwin/sparc
 	mkdir -p root/libexec/gcc/darwin/x86_64
 
-	install -c -m 755 cctools/as/driver_dir/driver root/bin/as
-	install -c -m 755 cctools/as/a386_dir/as root/libexec/gcc/darwin/i386/as
-	install -c -m 755 cctools/as/a860_dir/as root/libexec/gcc/darwin/i860/as
-	install -c -m 755 cctools/as/a68_dir/as root/libexec/gcc/darwin/m68k/as
-	install -c -m 755 cctools/as/a88_dir/as root/libexec/gcc/darwin/m88k/as
-	install -c -m 755 cctools/as/aarm_dir/as root/libexec/gcc/darwin/arm/as
-	install -c -m 755 cctools/as/ahppa_dir/as root/libexec/gcc/darwin/hppa/as
-	install -c -m 755 cctools/as/appc64_dir/as root/libexec/gcc/darwin/ppc64/as
-	install -c -m 755 cctools/as/appc_dir/as root/libexec/gcc/darwin/ppc/as
-	install -c -m 755 cctools/as/asparc_dir/as root/libexec/gcc/darwin/sparc/as
-	install -c -m 755 cctools/as/ax86_64_dir/as root/libexec/gcc/darwin/x86_64/as
-	install -c -m 755 cctools/gprof/gprof.NEW root/bin/gprof
+	install -c -m 755 ppc-cctools/as/driver_dir/driver root/bin/as
+	install -c -m 755 ppc-cctools/as/a386_dir/as root/libexec/gcc/darwin/i386/as
+	install -c -m 755 ppc-cctools/as/a860_dir/as root/libexec/gcc/darwin/i860/as
+	install -c -m 755 ppc-cctools/as/a68_dir/as root/libexec/gcc/darwin/m68k/as
+	install -c -m 755 ppc-cctools/as/a88_dir/as root/libexec/gcc/darwin/m88k/as
+	install -c -m 755 ppc-cctools/as/aarm_dir/as root/libexec/gcc/darwin/arm/as
+	install -c -m 755 ppc-cctools/as/ahppa_dir/as root/libexec/gcc/darwin/hppa/as
+	install -c -m 755 ppc-cctools/as/appc64_dir/as root/libexec/gcc/darwin/ppc64/as
+	install -c -m 755 ppc-cctools/as/appc_dir/as root/libexec/gcc/darwin/ppc/as
+	install -c -m 755 ppc-cctools/as/asparc_dir/as root/libexec/gcc/darwin/sparc/as
+	install -c -m 755 ppc-cctools/as/ax86_64_dir/as root/libexec/gcc/darwin/x86_64/as
+	install -c -m 755 ppc-cctools/gprof/gprof.NEW root/bin/gprof
 	for misc_bin in \
 		checksyms seg_addr_table check_dylib indr seg_hack \
 		strip strings size nm libtool lipo segedit cmpdylib \
 		pagestuff redo_prebinding nmedit install_name_tool \
 		codesign_allocate ctf_insert ; \
 	do \
-		install -c -m 755 cctools/misc/$${misc_bin}.NEW root/bin/$${misc_bin} ; \
+		install -c -m 755 ppc-cctools/misc/$${misc_bin}.NEW root/bin/$${misc_bin} ; \
 	done
-	install -c -m 755 cctools/otool/otool.NEW root/bin/otool
-	install -c -m 755 cctools/ar/ar.NEW root/bin/ar
-	install -c -m 755 cctools/efitools/mtoc.NEW root/bin/mtoc
+	(cd root/bin && ln -s libtool ranlib)
+	install -c -m 755 ppc-cctools/otool/otool.NEW root/bin/otool
+	install -c -m 755 ppc-cctools/ar/ar.NEW root/bin/ar
+	install -c -m 755 ppc-cctools/efitools/mtoc.NEW root/bin/mtoc
 
-	install -c -m 644 cctools/misc/libredo_prebinding.a root/lib/libredo_prebinding.a
-	install -c -m 644 cctools/cbtlibs/libsyminfo.a root/lib/libsyminfo.a
-	install -c -m 644 cctools/libmacho/otmp_obj/libmacho_static.a root/lib/libmacho_static.a
-	install -c -m 644 cctools/libmacho/dtmp_obj/libmacho.a root/lib/libmacho_debug.a
-	install -c -m 644 cctools/libmacho/dtmp_obj/libmacho.dylib root/lib/libmacho.dylib
-	install -c -m 644 cctools/libmacho/ptmp_obj/libmacho_pg.a root/lib/libmacho_profile.a
+	install -c -m 644 ppc-cctools/misc/libredo_prebinding.a root/lib/libredo_prebinding.a
+	install -c -m 644 ppc-cctools/cbtlibs/libsyminfo.a root/lib/libsyminfo.a
+	install -c -m 644 ppc-cctools/libmacho/otmp_obj/libmacho_static.a root/lib/libmacho_static.a
+	install -c -m 644 ppc-cctools/libmacho/dtmp_obj/libmacho.a root/lib/libmacho_debug.a
+	install -c -m 644 ppc-cctools/libmacho/dtmp_obj/libmacho.dylib root/lib/libmacho.dylib
+	install -c -m 644 ppc-cctools/libmacho/ptmp_obj/libmacho_pg.a root/lib/libmacho_profile.a
+
+	(cd root/bin && for f in ar as libtool ld nm ranlib size strings strip ; do \
+		ln -s $$f ppc-apple-darwin9-$$f ; \
+		ln -s $$f ppc64-apple-darwin9-$$f ; \
+	done )
 
 #	env \
 #	PATH=${PATH}:$(VERS_STRING_PATH) \
 #	VERS_STRING_GIT=$(VERS_STRING_GIT) \
 #	RC_ProjectSourceVersion=$(CCTOOLS_VERSION) \
-#	make -C cctools install DSTROOT=`pwd`/root \
+#	make -C ppc-cctools install DSTROOT=`pwd`/root \
 #	TRIE="-DTRIE_SUPPORT -I"`pwd`"/prunetrie/include/ppc-ld64/" \
 #	LIB_PRUNETRIE=`pwd`/prunetrie/libexec/ppc-ld64/libprunetrie.a \
 #	LTO="-DLTO_SUPPORT -I"`$(LLVM_CONFIG) --includedir`
