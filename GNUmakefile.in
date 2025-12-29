@@ -6,16 +6,20 @@ VERS_STRING_PATH_LOCAL := `pwd`/vers_string
 VERS_STRING_PATH ?= $(VERS_STRING_PATH_LOCAL)
 VERS_STRING_GIT ?= @GIT@
 LLVM_CONFIG ?= @LLVM_CONFIG@
+PPC_PREFIX := $(shell pwd)/root
+PPC_GCC_WORK := $(shell pwd)/ppc-apple-gcc/build-ppc
 .PHONY: _ld64 _cctools install-ld64 install-cctools install
 
 all:
 	$(MAKE) _ld64
 	$(MAKE) _cctools
+	$(MAKE) _gcc
 
 clean:
 	rm -rf prunetrie
 	$(MAKE) -C ppc-ld64 clean
 	$(MAKE) -C ppc-cctools clean
+	rm -rf $(PPC_GCC_WORK)
 
 _ld64:
 	$(MAKE) -C ppc-ld64 CCTOOLS=../ppc-cctools LLDB=../ppc-libunwind
@@ -47,6 +51,31 @@ _cctools:
 	TRIE="-DTRIE_SUPPORT -I"`pwd`"/prunetrie/include/ppc-ld64/" \
 	LIB_PRUNETRIE=`pwd`/prunetrie/libexec/ppc-ld64/libprunetrie.a \
 	LTO="-DLTO_SUPPORT -I"`$(LLVM_CONFIG) --includedir`
+
+_gcc:
+	if test ! -d $(PPC_GCC_WORK) ; then mkdir $(PPC_GCC_WORK) ; fi && \
+	cd $(PPC_GCC_WORK) && \
+	env \
+	PATH=$(PPC_PREFIX)/bin:${PATH} \
+	../configure \
+	--prefix=$(PPC_PREFIX) \
+	--libexecdir=$(PPC_PREFIX)/libexec \
+	--libdir=$(PPC_PREFIX)/lib/darwin/ \
+	--includedir=$(PPC_PREFIX)/include \
+	--program-suffix=-apple-darwin9 \
+	--host=x86_64-apple-darwin11 \
+	--target=ppc-apple-darwin9 \
+	--with-build-sysroot=/tmp/ppc-mach-o/MacOSX10.5.sdk/ \
+	--with-sysroot=/tmp/ppc-mach-o/MacOSX10.5.sdk/ \
+	--disable-checking \
+	--disable-libgomp \
+	--disable-libmudflap \
+	--disable-libssp \
+	--disable-nls \
+	--enable-languages="c,c++" && \
+	env PATH=$(PPC_PREFIX)/bin:${PATH} make -j4 all-gcc && \
+	env PATH=$(PPC_PREFIX)/bin:${PATH} make -j4 all-target-libstdc++-v3 \
+	CXXFLAGS="-D__block=_block"
 
 install: install-ld64 install-cctools
 
@@ -112,7 +141,7 @@ install-cctools:
 	$(INSTALL) -c -m 644 ppc-cctools/libmacho/dtmp_obj/libmacho.dylib root/lib/libmacho.dylib
 	$(INSTALL) -c -m 644 ppc-cctools/libmacho/ptmp_obj/libmacho_pg.a root/lib/libmacho_profile.a
 
-	(cd root/bin && for f in ar as libtool ld nm ranlib size strings strip ; do \
+	(cd root/bin && for f in ar as libtool lipo ld nm ranlib size strings strip ; do \
 		rm -f ppc-apple-darwin9-$$f ; \
 		rm -f ppc64-apple-darwin9-$$f ; \
 		$(LN_S) $$f ppc-apple-darwin9-$$f ; \
