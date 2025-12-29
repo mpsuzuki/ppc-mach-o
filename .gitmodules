@@ -10,3 +10,7 @@
 [submodule "vers_string"]
 	path = vers_string
 	url = https://github.com/mpsuzuki/vers_string
+[submodule "ppc-apple-gcc"]
+	path = ppc-apple-gcc
+	url = https://github.com/mpsuzuki/ppc-apple-gcc
+	branch = ppc-gcc-5666.3
