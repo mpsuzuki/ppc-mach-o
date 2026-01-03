@@ -80,7 +80,7 @@ _gcc:
 	--disable-libmudflap \
 	--disable-libssp \
 	--disable-nls \
-	--enable-languages="c,c++" \
+	--enable-languages="c,c++,objc" \
 	&& \
 	env PATH=$(PPC_PREFIX)/bin:${PATH} make -j4 all-gcc \
 	&& \
