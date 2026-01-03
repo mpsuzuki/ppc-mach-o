@@ -84,8 +84,7 @@ _gcc:
 	&& \
 	env PATH=$(PPC_PREFIX)/bin:${PATH} make -j4 all-gcc \
 	&& \
-	env PATH=$(PPC_PREFIX)/bin:${PATH} make -j4 all-target-libstdc++-v3 \
-	CXXFLAGS="-D__block=_block"
+	env PATH=$(PPC_PREFIX)/bin:${PATH} make -j4 all-target-libstdc++-v3
 
 install: install-ld64 install-cctools install-gcc
 
