@@ -8,18 +8,20 @@ VERS_STRING_GIT ?= @GIT@
 LLVM_CONFIG ?= @LLVM_CONFIG@
 PPC_PREFIX := $(shell pwd)/root
 PPC_GCC_WORK := $(shell pwd)/ppc-apple-gcc/build-ppc
-.PHONY: _ld64 _cctools install-ld64 install-cctools install
+.PHONY: _ld64 _cctools _gcc install-ld64 install-cctools install-gcc install
 
 all:
 	$(MAKE) _ld64
+	$(MAKE) install-ld64
 	$(MAKE) _cctools
+	$(MAKE) install-cctools
 	$(MAKE) _gcc
 
 clean:
-	rm -rf prunetrie
+	rm -rvf prunetrie
 	$(MAKE) -C ppc-ld64 clean
 	$(MAKE) -C ppc-cctools clean
-	rm -rf $(PPC_GCC_WORK)
+	rm -rvf $(PPC_GCC_WORK)
 
 _ld64:
 	$(MAKE) -C ppc-ld64 CCTOOLS=../ppc-cctools LLDB=../ppc-libunwind
@@ -77,7 +79,7 @@ _gcc:
 	env PATH=$(PPC_PREFIX)/bin:${PATH} make -j4 all-target-libstdc++-v3 \
 	CXXFLAGS="-D__block=_block"
 
-install: install-ld64 install-cctools
+install: install-ld64 install-cctools install-gcc
 
 install-ld64:
 	mkdir root || true
@@ -147,6 +149,10 @@ install-cctools:
 		$(LN_S) $$f ppc-apple-darwin9-$$f ; \
 		$(LN_S) $$f ppc64-apple-darwin9-$$f ; \
 	done )
+
+install-gcc:
+	env PATH=$(PPC_PREFIX)/bin:${PATH} \
+	$(MAKE) -C $(PPC_GCC_WORK) install
 
 #	env \
 #	PATH=${PATH}:$(VERS_STRING_PATH) \
