@@ -21,6 +21,9 @@ clean:
 	rm -rvf prunetrie
 	$(MAKE) -C ppc-ld64 clean
 	$(MAKE) -C ppc-cctools clean
+	$(MAKE) clean-gcc
+
+clean-gcc:
 	rm -rvf $(PPC_GCC_WORK)
 
 _ld64:
