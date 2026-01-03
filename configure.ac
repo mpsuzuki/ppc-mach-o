@@ -19,5 +19,19 @@ AC_SUBST(AWK)
 AC_SUBST(LLVM_CONFIG)
 AC_SUBST(GIT)
 
+AC_ARG_WITH([sysroot],
+  [AS_HELP_STRING([--with-sysroot],
+    [specify dirname including one or more SDKs, default is /Developer/SDKs/])],
+  [SYSROOT="${withval}"],
+  [SYSROOT="/Developer/SDKs"])
+AC_SUBST(SYSROOT)
+
+AC_ARG_WITH([sysroot-suffix],
+  [AS_HELP_STRING([--with-sysroot-suffix],
+    [specify default SDK suffix, default is MacOSX10.5.sdk/])],
+  [SYSROOT_SUFFIX="${withval}"],
+  [SYSROOT_SUFFIX="MacOSX10.5.sdk"])
+AC_SUBST(SYSROOT_SUFFIX)
+
 AC_CONFIG_FILES([GNUmakefile])
 AC_OUTPUT

@@ -6,6 +6,8 @@ VERS_STRING_PATH_LOCAL := `pwd`/vers_string
 VERS_STRING_PATH ?= $(VERS_STRING_PATH_LOCAL)
 VERS_STRING_GIT ?= @GIT@
 LLVM_CONFIG ?= @LLVM_CONFIG@
+SYSROOT ?= @SYSROOT@
+SYSROOT_SUFFIX ?= @SYSROOT_SUFFIX@
 PPC_PREFIX := $(shell pwd)/root
 PPC_GCC_WORK := $(shell pwd)/ppc-apple-gcc/build-ppc
 .PHONY: _ld64 _cctools _gcc install-ld64 install-cctools install-gcc install
@@ -70,16 +72,20 @@ _gcc:
 	--program-suffix=-apple-darwin9 \
 	--host=x86_64-apple-darwin11 \
 	--target=ppc-apple-darwin9 \
-	--with-build-sysroot=/tmp/ppc-mach-o/MacOSX10.5.sdk/ \
-	--with-sysroot=/tmp/ppc-mach-o/MacOSX10.5.sdk/ \
+	--with-build-sysroot=$(SYSROOT)/$(SYSROOT_SUFFIX)/ \
+	--with-sysroot=$(SYSROOT)/ \
 	--disable-checking \
 	--disable-libgomp \
 	--disable-libmudflap \
 	--disable-libssp \
 	--disable-nls \
-	--enable-languages="c,c++" && \
-	env PATH=$(PPC_PREFIX)/bin:${PATH} make -j4 all-gcc && \
+	--enable-languages="c,c++" \
+	&& \
+	env PATH=$(PPC_PREFIX)/bin:${PATH} make -j4 all-gcc \
+	SYSROOT_SUFFIX_DEFINE="-DSYSROOT_SUFFIX_SPEC=\\\"$(SYSROOT_SUFFIX)\\\"" \
+	&& \
 	env PATH=$(PPC_PREFIX)/bin:${PATH} make -j4 all-target-libstdc++-v3 \
+	SYSROOT_SUFFIX_DEFINE="-DSYSROOT_SUFFIX_SPEC=\\\"$(SYSROOT_SUFFIX)\\\"" \
 	CXXFLAGS="-D__block=_block"
 
 install: install-ld64 install-cctools install-gcc
