@@ -9,7 +9,7 @@ LLVM_CONFIG ?= @LLVM_CONFIG@
 SYSROOT ?= @SYSROOT@
 SYSROOT_SUFFIX ?= @SYSROOT_SUFFIX@
 PPC_PREFIX := $(shell pwd)/root
-MD_PATH ?= $(PPC_PREFIX)/bin
+MD_PATH ?= @MD_PATH@
 PPC_GCC_WORK := $(shell pwd)/ppc-apple-gcc/build-ppc
 .PHONY: _ld64 _md _cctools _gcc install-ld64 install-md install-cctools install-gcc install
 

@@ -24,5 +24,15 @@ MY_XCODE_SYSROOT
 AC_SUBST(SYSROOT)
 AC_SUBST(SYSROOT_SUFFIX)
 
+AC_PATH_PROG(MD, [md])
+MD_SUBST=
+if test "x${MD}" != x
+then
+  MD_PATH=`dirname ${MD}`
+else
+  MD_PATH='$(PPC_PREFIX)/bin'
+fi
+AC_SUBST(MD_PATH)
+
 AC_CONFIG_FILES([GNUmakefile])
 AC_OUTPUT
