@@ -9,12 +9,15 @@ LLVM_CONFIG ?= @LLVM_CONFIG@
 SYSROOT ?= @SYSROOT@
 SYSROOT_SUFFIX ?= @SYSROOT_SUFFIX@
 PPC_PREFIX := $(shell pwd)/root
+MD_PATH ?= $(PPC_PREFIX)/bin
 PPC_GCC_WORK := $(shell pwd)/ppc-apple-gcc/build-ppc
-.PHONY: _ld64 _cctools _gcc install-ld64 install-cctools install-gcc install
+.PHONY: _ld64 _md _cctools _gcc install-ld64 install-md install-cctools install-gcc install
 
 all:
 	$(MAKE) _ld64
 	$(MAKE) install-ld64
+	$(MAKE) _md
+	$(MAKE) install-md
 	$(MAKE) _cctools
 	$(MAKE) install-cctools
 	$(MAKE) _gcc
@@ -32,6 +35,14 @@ _ld64:
 	$(MAKE) -C ppc-ld64 CCTOOLS=../ppc-cctools LLDB=../ppc-libunwind
 	$(MAKE) -C ppc-ld64 install-prune-trie PREFIX=../prunetrie
 
+_md:
+	cd adv_cmds/md && $(CC) -o md md.c
+
+install-md:
+	mkdir root || true
+	mkdir root/bin || true
+	$(INSTALL) -c -m 755 adv_cmds/md/md root/bin/
+
 CCTOOLS_PROJECT := $(shell $(VERS_STRING_GIT) -C ppc-cctools remote | head -1 | \
 		xargs $(VERS_STRING_GIT) -C ppc-cctools remote get-url | \
 		xargs -I{} basename {} .git)
@@ -40,10 +51,9 @@ CCTOOLS_VERSION := $(shell $(VERS_STRING_GIT) -C ppc-cctools describe --tags | \
 		tr "." "\n" | sed "/[^0-9]/d" | \
 		$(AWK) 'BEGIN{s=""}{if(NR>1){s=s "."};s = s $$0}END{print s}')
 
-
-_cctools:
+_cctools: install-md
 	env \
-	PATH=${PATH}:$(VERS_STRING_PATH) \
+	PATH=${PATH}:$(VERS_STRING_PATH):$(MD_PATH) \
 	VERS_STRING_GIT=$(VERS_STRING_GIT) \
 	RC_ProjectSourceVersion=$(CCTOOLS_VERSION) \
 	$(MAKE) -C ppc-cctools \
@@ -51,7 +61,7 @@ _cctools:
 	LIB_PRUNETRIE=`pwd`/prunetrie/libexec/ppc-ld64/libprunetrie.a \
 	LTO="-DLTO_SUPPORT -I"`$(LLVM_CONFIG) --includedir`
 	env \
-	PATH=${PATH}:$(VERS_STRING_PATH) \
+	PATH=${PATH}:$(VERS_STRING_PATH):$(MD_PATH) \
 	VERS_STRING_GIT=$(VERS_STRING_GIT) \
 	RC_ProjectSourceVersion=$(CCTOOLS_VERSION) \
 	$(MAKE) -C ppc-cctools/libmacho \
