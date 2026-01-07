@@ -11,7 +11,9 @@ SYSROOT_SUFFIX ?= @SYSROOT_SUFFIX@
 PPC_PREFIX := $(shell pwd)/root
 MD_PATH ?= @MD_PATH@
 PPC_GCC_WORK := $(shell pwd)/ppc-apple-gcc/build-ppc
-.PHONY: _ld64 _md _cctools _gcc install-ld64 install-md install-cctools install-gcc install
+.PHONY: build-ld64 build-md build-cctools build-gcc \
+	install-ld64 install-md install-cctools install-gcc \
+	install
 
 TRIPLET ?= ppc-apple-darwin9
 TRIPLET_ = $(TRIPLET)-
@@ -19,13 +21,13 @@ TRIPLET64 ?= ppc64-apple-darwin9
 TRIPLET64_ = $(TRIPLET64)-
 
 all:
-	$(MAKE) _ld64
+	$(MAKE) build-ld64
 	$(MAKE) install-ld64
-	$(MAKE) _md
+	$(MAKE) build-md
 	$(MAKE) install-md
-	$(MAKE) _cctools
+	$(MAKE) build-cctools
 	$(MAKE) install-cctools
-	$(MAKE) _gcc
+	$(MAKE) build-gcc
 
 clean:
 	rm -rvf prunetrie
@@ -36,11 +38,11 @@ clean:
 clean-gcc:
 	rm -rvf $(PPC_GCC_WORK)
 
-_ld64:
+build-ld64:
 	$(MAKE) -C ppc-ld64 CCTOOLS=../ppc-cctools LLDB=../ppc-libunwind
 	$(MAKE) -C ppc-ld64 install-prune-trie PREFIX=../prunetrie
 
-_md:
+build-md:
 	cd adv_cmds/md && $(CC) -o md md.c
 
 install-md:
@@ -60,7 +62,7 @@ CCTOOLS_LOCAL_LIBEXEC_SUFFIX = "local/libexec/"
 CCTOOLS_LIBEXEC_RELATIVE = "../"$(CCTOOLS_LIBEXEC_SUFFIX)
 CCTOOLS_LOCAL_LIBEXEC_RELATIVE = "../"$(CCTOOLS_LOCAL_LIBEXEC_SUFFIX)
 
-_cctools: install-md
+build-cctools: install-md
 	$(CC) -o resolvepath resolvepath.c \
 	&& \
 	env \
@@ -87,7 +89,7 @@ _cctools: install-md
 	LIB_PRUNETRIE=`pwd`/prunetrie/libexec/ppc-ld64/libprunetrie.a \
 	LTO="-DLTO_SUPPORT -I"`$(LLVM_CONFIG) --includedir`
 
-_gcc:
+build-gcc:
 	if test ! -d $(PPC_GCC_WORK) ; then mkdir $(PPC_GCC_WORK) ; fi && \
 	cd $(PPC_GCC_WORK) && \
 	env \
