@@ -13,6 +13,11 @@ MD_PATH ?= @MD_PATH@
 PPC_GCC_WORK := $(shell pwd)/ppc-apple-gcc/build-ppc
 .PHONY: _ld64 _md _cctools _gcc install-ld64 install-md install-cctools install-gcc install
 
+TRIPLET ?= ppc-apple-darwin9
+TRIPLET_ = $(TRIPLET)-
+TRIPLET64 ?= ppc64-apple-darwin9
+TRIPLET64_ = $(TRIPLET64)-
+
 all:
 	$(MAKE) _ld64
 	$(MAKE) install-ld64
@@ -50,21 +55,34 @@ CCTOOLS_VERSION := $(shell $(VERS_STRING_GIT) -C ppc-cctools describe --tags | \
 		$(SED) "s/^$(CCTOOLS_PROJECT)-*//;s/-/./g" | \
 		tr "." "\n" | sed "/[^0-9]/d" | \
 		$(AWK) 'BEGIN{s=""}{if(NR>1){s=s "."};s = s $$0}END{print s}')
+CCTOOLS_LIBEXEC_SUFFIX = "libexec/"
+CCTOOLS_LOCAL_LIBEXEC_SUFFIX = "local/libexec/"
+CCTOOLS_LIBEXEC_RELATIVE = "../"$(CCTOOLS_LIBEXEC_SUFFIX)
+CCTOOLS_LOCAL_LIBEXEC_RELATIVE = "../"$(CCTOOLS_LOCAL_LIBEXEC_SUFFIX)
 
 _cctools: install-md
+	$(CC) -o resolvepath resolvepath.c \
+	&& \
 	env \
 	PATH=${PATH}:$(VERS_STRING_PATH):$(MD_PATH) \
 	VERS_STRING_GIT=$(VERS_STRING_GIT) \
 	RC_ProjectSourceVersion=$(CCTOOLS_VERSION) \
 	$(MAKE) -C ppc-cctools \
+	DYLIBDIR="/usr/local/lib" \
+	CCTOOLS_LIBEXEC_RELATIVE=$(CCTOOLS_LIBEXEC_RELATIVE) \
+	CCTOOLS_LOCAL_LIBEXEC_RELATIVE=$(CCTOOLS_LOCAL_LIBEXEC_RELATIVE) \
 	TRIE="-DTRIE_SUPPORT -I"`pwd`"/prunetrie/include/ppc-ld64/" \
 	LIB_PRUNETRIE=`pwd`/prunetrie/libexec/ppc-ld64/libprunetrie.a \
-	LTO="-DLTO_SUPPORT -I"`$(LLVM_CONFIG) --includedir`
+	LTO="-DLTO_SUPPORT -I"`$(LLVM_CONFIG) --includedir` \
+	&& \
 	env \
 	PATH=${PATH}:$(VERS_STRING_PATH):$(MD_PATH) \
 	VERS_STRING_GIT=$(VERS_STRING_GIT) \
 	RC_ProjectSourceVersion=$(CCTOOLS_VERSION) \
 	$(MAKE) -C ppc-cctools/libmacho \
+	DYLIBDIR="/usr/local/lib" \
+	CCTOOLS_LIBEXEC_RELATIVE=$(CCTOOLS_LIBEXEC_RELATIVE) \
+	CCTOOLS_LOCAL_LIBEXEC_RELATIVE=$(CCTOOLS_LOCAL_LIBEXEC_RELATIVE) \
 	TRIE="-DTRIE_SUPPORT -I"`pwd`"/prunetrie/include/ppc-ld64/" \
 	LIB_PRUNETRIE=`pwd`/prunetrie/libexec/ppc-ld64/libprunetrie.a \
 	LTO="-DLTO_SUPPORT -I"`$(LLVM_CONFIG) --includedir`
@@ -80,7 +98,8 @@ _gcc:
 	--libdir=$(PPC_PREFIX)/lib/darwin/ \
 	--includedir=$(PPC_PREFIX)/include \
 	--program-suffix=-apple-darwin9 \
-	--target=ppc-apple-darwin9 \
+	--host=`uname -m`-apple-`uname | tr 'A-Z' 'a-z'``uname -r | cut -d. -f1` \
+	--target=$(TRIPLET) \
 	--with-build-sysroot=$(SYSROOT)/$(SYSROOT_SUFFIX)/ \
 	--with-sysroot=$(SYSROOT)/ \
 	--with-sysroot-suffix=$(SYSROOT_SUFFIX)/ \
@@ -100,12 +119,12 @@ install: install-ld64 install-cctools install-gcc
 install-ld64:
 	mkdir root || true
 	mkdir root/bin || true
-	$(INSTALL) -c -m 755 ppc-ld64/ld64 root/bin/ld64
+	mkdir root/libexec || true
+	$(INSTALL) -c -m 755 ppc-ld64/ld64 root/libexec/ld
 	(cd root/bin && \
-	rm -f ld ppc-apple-darwin9-ld ppc64-apple-darwin9-ld && \
-	$(LN_S) ld64 ld && \
-	$(LN_S) ld ppc-apple-darwin9-ld && \
-	$(LN_S) ld ppc64-apple-darwin9-ld )
+	rm -f $(TRIPLET_)ld $(TRIPLET64_)ld && \
+	$(LN_S) ../libexec/ld $(TRIPLET_)ld && \
+	$(LN_S) ../libexec/ld $(TRIPLET64_)ld )
 
 install-cctools:
 	mkdir root || true
@@ -113,44 +132,62 @@ install-cctools:
 	mkdir root/include || true
 	mkdir root/include/mach-o || true
 	mkdir root/lib || true
-	mkdir root/libexec || true
-	mkdir root/libexec/gcc || true
-	mkdir root/libexec/gcc/darwin || true
-	mkdir root/libexec/gcc/darwin/arm || true
-	mkdir root/libexec/gcc/darwin/hppa || true
-	mkdir root/libexec/gcc/darwin/i386 || true
-	mkdir root/libexec/gcc/darwin/i860 || true
-	mkdir root/libexec/gcc/darwin/m68k || true
-	mkdir root/libexec/gcc/darwin/m88k || true
-	mkdir root/libexec/gcc/darwin/ppc || true
-	mkdir root/libexec/gcc/darwin/ppc64 || true
-	mkdir root/libexec/gcc/darwin/sparc || true
-	mkdir root/libexec/gcc/darwin/x86_64 || true
+	mkdir root/$(CCTOOLS_LIBEXEC_SUFFIX) || true
+	mkdir root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools || true
+	mkdir root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/arm || true
+	mkdir root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/hppa || true
+	mkdir root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/i386 || true
+	mkdir root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/i860 || true
+	mkdir root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/m68k || true
+	mkdir root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/m88k || true
+	mkdir root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/ppc || true
+	mkdir root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/ppc64 || true
+	mkdir root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/sparc || true
+	mkdir root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/x86_64 || true
 
-	$(INSTALL) -c -m 755 ppc-cctools/as/driver_dir/driver root/bin/as
-	$(INSTALL) -c -m 755 ppc-cctools/as/a386_dir/as root/libexec/gcc/darwin/i386/as
-	$(INSTALL) -c -m 755 ppc-cctools/as/a860_dir/as root/libexec/gcc/darwin/i860/as
-	$(INSTALL) -c -m 755 ppc-cctools/as/a68_dir/as root/libexec/gcc/darwin/m68k/as
-	$(INSTALL) -c -m 755 ppc-cctools/as/a88_dir/as root/libexec/gcc/darwin/m88k/as
-	$(INSTALL) -c -m 755 ppc-cctools/as/aarm_dir/as root/libexec/gcc/darwin/arm/as
-	$(INSTALL) -c -m 755 ppc-cctools/as/ahppa_dir/as root/libexec/gcc/darwin/hppa/as
-	$(INSTALL) -c -m 755 ppc-cctools/as/appc64_dir/as root/libexec/gcc/darwin/ppc64/as
-	$(INSTALL) -c -m 755 ppc-cctools/as/appc_dir/as root/libexec/gcc/darwin/ppc/as
-	$(INSTALL) -c -m 755 ppc-cctools/as/asparc_dir/as root/libexec/gcc/darwin/sparc/as
-	$(INSTALL) -c -m 755 ppc-cctools/as/ax86_64_dir/as root/libexec/gcc/darwin/x86_64/as
+	$(INSTALL) -c -m 755 resolvepath root/bin/resolvepath
+
+	$(INSTALL) -c -m 755 ppc-cctools/as/driver_dir/driver root/$(CCTOOLS_LIBEXEC_SUFFIX)/as
+	$(INSTALL) -c -m 755 ppc-cctools/as/a386_dir/as root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/i386/as
+	$(INSTALL) -c -m 755 ppc-cctools/as/a860_dir/as root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/i860/as
+	$(INSTALL) -c -m 755 ppc-cctools/as/a68_dir/as root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/m68k/as
+	$(INSTALL) -c -m 755 ppc-cctools/as/a88_dir/as root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/m88k/as
+	$(INSTALL) -c -m 755 ppc-cctools/as/aarm_dir/as root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/arm/as
+	$(INSTALL) -c -m 755 ppc-cctools/as/ahppa_dir/as root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/hppa/as
+	$(INSTALL) -c -m 755 ppc-cctools/as/appc64_dir/as root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/ppc64/as
+	$(INSTALL) -c -m 755 ppc-cctools/as/appc_dir/as root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/ppc/as
+	$(INSTALL) -c -m 755 ppc-cctools/as/asparc_dir/as root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/sparc/as
+	$(INSTALL) -c -m 755 ppc-cctools/as/ax86_64_dir/as root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/x86_64/as
+	# $(SED) "s/@CMD_DIR@/bindir/" < triplet-as-skel.sh > root/bin/ppc-apple-darwin9-as
+	$(SED) "s/@CMD_DIR@/libexecdir/" < triplet-as-skel.sh > root/bin/ppc-apple-darwin9-as
+	chmod 755 root/bin/ppc-apple-darwin9-as
+
 	$(INSTALL) -c -m 755 ppc-cctools/gprof/gprof.NEW root/bin/gprof
+
+	$(INSTALL) -c -m 755 ppc-cctools/ar/ar.NEW \
+		root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/ar
+	$(SED) -e "s/@CMD@/ar/" < triplet-cctool-skel.sh > root/bin/ppc-apple-darwin9-ar
+	chmod 755 root/bin/ppc-apple-darwin9-ar
+	$(INSTALL) -c -m 755 ppc-cctools/misc/libtool.NEW \
+		root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/libtool
+	( cd root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools && rm -f ranlib && ln -s libtool ranlib )
+	$(SED) "s/@CMD@/ranlib/"  < triplet-cctool-skel.sh > root/bin/ppc-apple-darwin9-ranlib
+	$(SED) "s/@CMD@/libtool/" < triplet-cctool-skel.sh > root/bin/ppc-apple-darwin9-libtool
+	chmod 755 root/bin/ppc-apple-darwin9-ranlib
+	chmod 755 root/bin/ppc-apple-darwin9-libtool
+
 	for misc_bin in \
 		checksyms seg_addr_table check_dylib indr seg_hack \
-		strip strings size nm libtool lipo segedit cmpdylib \
+		strip strings size nm lipo segedit cmpdylib \
 		pagestuff redo_prebinding nmedit install_name_tool \
 		codesign_allocate ctf_insert ; \
 	do \
-		$(INSTALL) -c -m 755 ppc-cctools/misc/$${misc_bin}.NEW root/bin/$${misc_bin} ; \
+		$(INSTALL) -c -m 755 ppc-cctools/misc/$${misc_bin}.NEW \
+			root/bin/$(TRIPLET_)$${misc_bin} ; \
 	done
-	(cd root/bin && rm -f ranlib && $(LN_S) libtool ranlib)
-	$(INSTALL) -c -m 755 ppc-cctools/otool/otool.NEW root/bin/otool
-	$(INSTALL) -c -m 755 ppc-cctools/ar/ar.NEW root/bin/ar
-	$(INSTALL) -c -m 755 ppc-cctools/efitools/mtoc.NEW root/bin/mtoc
+
+	$(INSTALL) -c -m 755 ppc-cctools/otool/otool.NEW root/bin/$(TRIPLET_)otool
+	$(INSTALL) -c -m 755 ppc-cctools/efitools/mtoc.NEW root/bin/$(TRIPLET_)mtoc
 
 	$(INSTALL) -c -m 644 ppc-cctools/misc/libredo_prebinding.a root/lib/libredo_prebinding.a
 	$(INSTALL) -c -m 644 ppc-cctools/cbtlibs/libsyminfo.a root/lib/libsyminfo.a
@@ -159,11 +196,10 @@ install-cctools:
 	$(INSTALL) -c -m 644 ppc-cctools/libmacho/dtmp_obj/libmacho.dylib root/lib/libmacho.dylib
 	$(INSTALL) -c -m 644 ppc-cctools/libmacho/ptmp_obj/libmacho_pg.a root/lib/libmacho_profile.a
 
-	(cd root/bin && for f in ar as libtool lipo ld nm ranlib size strings strip ; do \
-		rm -f ppc-apple-darwin9-$$f ; \
-		rm -f ppc64-apple-darwin9-$$f ; \
-		$(LN_S) $$f ppc-apple-darwin9-$$f ; \
-		$(LN_S) $$f ppc64-apple-darwin9-$$f ; \
+	(cd root/bin && for f in $(TRIPLET_)* ; do \
+		f=`echo $$f | sed "s/^$(TRIPLET_)//"` ; \
+		rm -f $(TRIPLET64_)$$f ; \
+		$(LN_S) $(TRIPLET_)$$f $(TRIPLET64_)$$f ; \
 	done )
 
 install-gcc:
