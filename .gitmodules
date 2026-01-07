@@ -14,6 +14,6 @@
 	path = ppc-apple-gcc
 	url = https://github.com/mpsuzuki/ppc-apple-gcc
 	branch = ppc-gcc-5666.3
-[submodule "adv_cmds"]
-	path = adv_cmds
-	url = https://github.com/apple-oss-distributions/adv_cmds.git
+[submodule "md"]
+	path = md
+	url = https://github.com/mpsuzuki/osx-legacy-md.git

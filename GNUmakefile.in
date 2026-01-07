@@ -43,12 +43,12 @@ build-ld64:
 	$(MAKE) -C ppc-ld64 install-prune-trie PREFIX=../prunetrie
 
 build-md:
-	cd adv_cmds/md && $(CC) -o md md.c
+	cd md && $(CC) -o md md.c
 
 install-md:
 	mkdir root || true
 	mkdir root/bin || true
-	$(INSTALL) -c -m 755 adv_cmds/md/md root/bin/
+	$(INSTALL) -c -m 755 md/md root/bin/
 
 CCTOOLS_PROJECT := $(shell $(VERS_STRING_GIT) -C ppc-cctools remote | head -1 | \
 		xargs $(VERS_STRING_GIT) -C ppc-cctools remote get-url | \
