@@ -68,7 +68,6 @@ AC_DEFUN([MY_XCODE_SYSROOT],[
   do
     case "${sdk}" in
     MacOSX10.[[0-5]].*sdk|MacOSX10.[[0-5]][a-z].*sdk)
-      echo ${sdk}
       SYSROOT_SUFFIX=${sdk} ;;
     *) ;;
     esac
