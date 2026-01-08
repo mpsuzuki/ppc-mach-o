@@ -61,6 +61,7 @@ CCTOOLS_LIBEXEC_SUFFIX = "libexec/"
 CCTOOLS_LOCAL_LIBEXEC_SUFFIX = "local/libexec/"
 CCTOOLS_LIBEXEC_RELATIVE = "../"$(CCTOOLS_LIBEXEC_SUFFIX)
 CCTOOLS_LOCAL_LIBEXEC_RELATIVE = "../"$(CCTOOLS_LOCAL_LIBEXEC_SUFFIX)
+SYSROOT_OBJC ?= $(SYSROOT)/$(SYSROOT_SUFFIX)
 
 build-cctools: install-md
 	$(CC) -o resolvepath resolvepath.c \
@@ -73,6 +74,7 @@ build-cctools: install-md
 	DYLIBDIR="/usr/local/lib" \
 	CCTOOLS_LIBEXEC_RELATIVE=$(CCTOOLS_LIBEXEC_RELATIVE) \
 	CCTOOLS_LOCAL_LIBEXEC_RELATIVE=$(CCTOOLS_LOCAL_LIBEXEC_RELATIVE) \
+	SYSROOT_OBJC=$(SYSROOT_OBJC) \
 	TRIE="-DTRIE_SUPPORT -I"`pwd`"/prunetrie/include/ppc-ld64/" \
 	LIB_PRUNETRIE=`pwd`/prunetrie/libexec/ppc-ld64/libprunetrie.a \
 	LTO="-DLTO_SUPPORT -I"`$(LLVM_CONFIG) --includedir` \
@@ -85,6 +87,7 @@ build-cctools: install-md
 	DYLIBDIR="/usr/local/lib" \
 	CCTOOLS_LIBEXEC_RELATIVE=$(CCTOOLS_LIBEXEC_RELATIVE) \
 	CCTOOLS_LOCAL_LIBEXEC_RELATIVE=$(CCTOOLS_LOCAL_LIBEXEC_RELATIVE) \
+	SYSROOT_OBJC=$(SYSROOT_OBJC) \
 	TRIE="-DTRIE_SUPPORT -I"`pwd`"/prunetrie/include/ppc-ld64/" \
 	LIB_PRUNETRIE=`pwd`/prunetrie/libexec/ppc-ld64/libprunetrie.a \
 	LTO="-DLTO_SUPPORT -I"`$(LLVM_CONFIG) --includedir`
