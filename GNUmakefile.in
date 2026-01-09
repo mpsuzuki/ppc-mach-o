@@ -13,6 +13,7 @@ MD_PATH ?= @MD_PATH@
 PPC_GCC_WORK := $(shell pwd)/ppc-apple-gcc/build-ppc
 .PHONY: build-ld64 build-md build-cctools build-gcc \
 	config-gcc \
+	config-ld64 \
 	install-ld64 install-md install-cctools install-gcc \
 	install
 
@@ -22,6 +23,7 @@ TRIPLET64 ?= ppc64-apple-darwin9
 TRIPLET64_ = $(TRIPLET64)-
 
 all:
+	$(MAKE) config-ld64
 	$(MAKE) build-ld64
 	$(MAKE) install-ld64
 	$(MAKE) build-md
@@ -32,16 +34,25 @@ all:
 	$(MAKE) build-gcc
 
 clean:
-	rm -rvf prunetrie
-	$(MAKE) -C ppc-ld64 clean
+	$(MAKE) clean-ld64
 	$(MAKE) -C ppc-cctools clean
 	$(MAKE) clean-gcc
 
 clean-gcc:
 	rm -rvf $(PPC_GCC_WORK)
 
+config-ld64:
+	(cd ppc-ld64 && \
+	./configure \
+		--with-cctools=../ppc-cctools \
+		--with-lldb=../ppc-libunwind )
+
+clean-ld64:
+	rm -rvf prunetrie
+	$(MAKE) -C ppc-ld64 clean
+
 build-ld64:
-	$(MAKE) -C ppc-ld64 CCTOOLS=../ppc-cctools LLDB=../ppc-libunwind
+	$(MAKE) -C ppc-ld64
 	$(MAKE) -C ppc-ld64 install-prune-trie PREFIX=../prunetrie
 
 build-md:
