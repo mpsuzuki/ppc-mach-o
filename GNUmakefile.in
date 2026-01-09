@@ -12,6 +12,7 @@ PPC_PREFIX := $(shell pwd)/root
 MD_PATH ?= @MD_PATH@
 PPC_GCC_WORK := $(shell pwd)/ppc-apple-gcc/build-ppc
 .PHONY: build-ld64 build-md build-cctools build-gcc \
+	config-gcc \
 	install-ld64 install-md install-cctools install-gcc \
 	install
 
