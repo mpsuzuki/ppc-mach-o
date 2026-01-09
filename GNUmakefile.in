@@ -105,7 +105,7 @@ config-gcc:
 	--libdir=$(PPC_PREFIX)/lib/darwin/ \
 	--includedir=$(PPC_PREFIX)/include \
 	--program-suffix=-apple-darwin9 \
-	--host=`uname -m`-apple-`uname | tr 'A-Z' 'a-z'``uname -r | cut -d. -f1` \
+	--build=`uname -m`-apple-`uname | tr 'A-Z' 'a-z'``uname -r | cut -d. -f1` \
 	--target=$(TRIPLET) \
 	--with-build-sysroot=$(SYSROOT)/$(SYSROOT_SUFFIX)/ \
 	--with-sysroot=$(SYSROOT)/ \
