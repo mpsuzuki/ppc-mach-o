@@ -27,6 +27,7 @@ all:
 	$(MAKE) install-md
 	$(MAKE) build-cctools
 	$(MAKE) install-cctools
+	$(MAKE) config-gcc
 	$(MAKE) build-gcc
 
 clean:
@@ -92,7 +93,7 @@ build-cctools: install-md
 	LIB_PRUNETRIE=`pwd`/prunetrie/libexec/ppc-ld64/libprunetrie.a \
 	LTO="-DLTO_SUPPORT -I"`$(LLVM_CONFIG) --includedir`
 
-build-gcc:
+config-gcc:
 	if test ! -d $(PPC_GCC_WORK) ; then mkdir $(PPC_GCC_WORK) ; fi && \
 	cd $(PPC_GCC_WORK) && \
 	env \
@@ -114,6 +115,9 @@ build-gcc:
 	--disable-libssp \
 	--disable-nls \
 	--enable-languages="c,c++,objc" \
+
+build-gcc:
+	cd $(PPC_GCC_WORK) \
 	&& \
 	env PATH=$(PPC_PREFIX)/bin:${PATH} make -j4 all-gcc \
 	&& \
