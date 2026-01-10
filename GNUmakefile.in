@@ -8,18 +8,25 @@ VERS_STRING_GIT ?= @GIT@
 LLVM_CONFIG ?= @LLVM_CONFIG@
 SYSROOT ?= @SYSROOT@
 SYSROOT_SUFFIX ?= @SYSROOT_SUFFIX@
-PPC_PREFIX := $(shell pwd)/root
+CPU ?= ppc
+ifeq ($(CPU),ppc)
+  CPU64 ?= ppc64
+endif
+ifeq ($(CPU),i386)
+  CPU64 ?= x86_64
+endif
+PWD_PREFIX := $(shell pwd)/root
 MD_PATH ?= @MD_PATH@
-PPC_GCC_WORK := $(shell pwd)/ppc-apple-gcc/build-ppc
+CPU_GCC_WORK := $(shell pwd)/ppc-apple-gcc/build-$(CPU)
 .PHONY: build-ld64 build-md build-cctools build-gcc \
 	config-gcc \
 	config-ld64 \
 	install-ld64 install-md install-cctools install-gcc \
 	install
 
-TRIPLET ?= ppc-apple-darwin9
+TRIPLET ?= $(CPU)-apple-darwin9
 TRIPLET_ = $(TRIPLET)-
-TRIPLET64 ?= ppc64-apple-darwin9
+TRIPLET64 ?= $(CPU64)-apple-darwin9
 TRIPLET64_ = $(TRIPLET64)-
 
 all:
@@ -39,7 +46,7 @@ clean:
 	$(MAKE) clean-gcc
 
 clean-gcc:
-	rm -rvf $(PPC_GCC_WORK)
+	rm -rvf $(CPU_GCC_WORK)
 
 config-ld64:
 	(cd ppc-ld64 && \
@@ -106,15 +113,15 @@ build-cctools: install-md
 	LTO="-DLTO_SUPPORT -I"`$(LLVM_CONFIG) --includedir`
 
 config-gcc:
-	if test ! -d $(PPC_GCC_WORK) ; then mkdir $(PPC_GCC_WORK) ; fi && \
-	cd $(PPC_GCC_WORK) && \
+	if test ! -d $(CPU_GCC_WORK) ; then mkdir $(CPU_GCC_WORK) ; fi && \
+	cd $(CPU_GCC_WORK) && \
 	env \
-	PATH=$(PPC_PREFIX)/bin:${PATH} \
+	PATH=$(PWD_PREFIX)/bin:${PATH} \
 	../configure \
-	--prefix=$(PPC_PREFIX) \
-	--libexecdir=$(PPC_PREFIX)/libexec \
-	--libdir=$(PPC_PREFIX)/lib/darwin/ \
-	--includedir=$(PPC_PREFIX)/include \
+	--prefix=$(PWD_PREFIX) \
+	--libexecdir=$(PWD_PREFIX)/libexec \
+	--libdir=$(PWD_PREFIX)/lib/darwin/ \
+	--includedir=$(PWD_PREFIX)/include \
 	--program-suffix=-apple-darwin9 \
 	--build=`uname -m`-apple-`uname | tr 'A-Z' 'a-z'``uname -r | cut -d. -f1` \
 	--target=$(TRIPLET) \
@@ -129,11 +136,11 @@ config-gcc:
 	--enable-languages="c,c++,objc" \
 
 build-gcc:
-	cd $(PPC_GCC_WORK) \
+	cd $(CPU_GCC_WORK) \
 	&& \
-	env PATH=$(PPC_PREFIX)/bin:${PATH} make -j4 all-gcc \
+	env PATH=$(PWD_PREFIX)/bin:${PATH} make -j4 all-gcc \
 	&& \
-	env PATH=$(PPC_PREFIX)/bin:${PATH} make -j4 all-target-libstdc++-v3
+	env PATH=$(PWD_PREFIX)/bin:${PATH} make -j4 all-target-libstdc++-v3
 
 install: install-ld64 install-cctools install-gcc
 
@@ -179,23 +186,23 @@ install-cctools:
 	$(INSTALL) -c -m 755 ppc-cctools/as/appc_dir/as root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/ppc/as
 	$(INSTALL) -c -m 755 ppc-cctools/as/asparc_dir/as root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/sparc/as
 	$(INSTALL) -c -m 755 ppc-cctools/as/ax86_64_dir/as root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/x86_64/as
-	# $(SED) "s/@CMD_DIR@/bindir/" < triplet-as-skel.sh > root/bin/ppc-apple-darwin9-as
-	$(SED) "s/@CMD_DIR@/libexecdir/" < triplet-as-skel.sh > root/bin/ppc-apple-darwin9-as
-	chmod 755 root/bin/ppc-apple-darwin9-as
+	# $(SED) "s/@CMD_DIR@/bindir/" < triplet-as-skel.sh > root/bin/$(TRIPLET_)as
+	$(SED) "s/@CMD_DIR@/libexecdir/" < triplet-as-skel.sh > root/bin/$(TRIPLET_)as
+	chmod 755 root/bin/$(TRIPLET_)as
 
 	$(INSTALL) -c -m 755 ppc-cctools/gprof/gprof.NEW root/bin/gprof
 
 	$(INSTALL) -c -m 755 ppc-cctools/ar/ar.NEW \
 		root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/ar
-	$(SED) -e "s/@CMD@/ar/" < triplet-cctool-skel.sh > root/bin/ppc-apple-darwin9-ar
-	chmod 755 root/bin/ppc-apple-darwin9-ar
+	$(SED) -e "s/@CMD@/ar/" < triplet-cctool-skel.sh > root/bin/$(TRIPLET_)ar
+	chmod 755 root/bin/$(TRIPLET_)ar
 	$(INSTALL) -c -m 755 ppc-cctools/misc/libtool.NEW \
 		root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/libtool
 	( cd root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools && rm -f ranlib && ln -s libtool ranlib )
-	$(SED) "s/@CMD@/ranlib/"  < triplet-cctool-skel.sh > root/bin/ppc-apple-darwin9-ranlib
-	$(SED) "s/@CMD@/libtool/" < triplet-cctool-skel.sh > root/bin/ppc-apple-darwin9-libtool
-	chmod 755 root/bin/ppc-apple-darwin9-ranlib
-	chmod 755 root/bin/ppc-apple-darwin9-libtool
+	$(SED) "s/@CMD@/ranlib/"  < triplet-cctool-skel.sh > root/bin/$(TRIPLET_)ranlib
+	$(SED) "s/@CMD@/libtool/" < triplet-cctool-skel.sh > root/bin/$(TRIPLET_)libtool
+	chmod 755 root/bin/$(TRIPLET_)ranlib
+	chmod 755 root/bin/$(TRIPLET_)libtool
 
 	for misc_bin in \
 		checksyms seg_addr_table check_dylib indr seg_hack \
@@ -224,8 +231,8 @@ install-cctools:
 	done )
 
 install-gcc:
-	env PATH=$(PPC_PREFIX)/bin:${PATH} \
-	$(MAKE) -C $(PPC_GCC_WORK) install
+	env PATH=$(PWD_PREFIX)/bin:${PATH} \
+	$(MAKE) -C $(CPU_GCC_WORK) install
 
 #	env \
 #	PATH=${PATH}:$(VERS_STRING_PATH) \
