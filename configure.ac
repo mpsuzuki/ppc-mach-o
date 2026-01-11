@@ -30,7 +30,7 @@ if test "x${MD}" != x
 then
   MD_PATH=`dirname ${MD}`
 else
-  MD_PATH='$(PPC_PREFIX)/bin'
+  MD_PATH='$(PWD_PREFIX)/bin'
 fi
 AC_SUBST(MD_PATH)
 
