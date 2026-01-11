@@ -12,7 +12,7 @@ CPU ?= ppc
 ifeq ($(CPU),ppc)
   CPU64 ?= ppc64
 endif
-ifeq ($(CPU64),i386)
+ifeq ($(CPU),i386)
   CPU64 ?= x86_64
 endif
 PWD_PREFIX := $(shell pwd)/root
