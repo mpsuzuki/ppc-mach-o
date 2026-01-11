@@ -26,7 +26,7 @@ need_arch=yes
 for _opt in $@
 do
   case "${_opt}" in
-    -v|--version|-arch)
+    -arch)
        need_arch=no
        ;;
     *) ;;
