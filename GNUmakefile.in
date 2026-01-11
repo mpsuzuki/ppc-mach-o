@@ -186,7 +186,7 @@ install-cctools:
 	$(INSTALL) -c -m 755 ppc-cctools/as/appc_dir/as root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/ppc/as
 	$(INSTALL) -c -m 755 ppc-cctools/as/asparc_dir/as root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/sparc/as
 	$(INSTALL) -c -m 755 ppc-cctools/as/ax86_64_dir/as root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/x86_64/as
-	$(SED) -e "s^@CMD_DIR@^libexecdir^;s^@RESOLVEPATH@^$(PWD_PREFIX)/bin/resolevpath^;" \
+	$(SED) -e "s^@CMD_DIR@^libexecdir^;s^@RESOLVEPATH@^$(PWD_PREFIX)/bin/resolvepath^;" \
 		< triplet-as-skel.sh > root/bin/$(TRIPLET_)as
 	chmod 755 root/bin/$(TRIPLET_)as
 
