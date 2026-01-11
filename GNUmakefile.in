@@ -173,7 +173,7 @@ install-cctools:
 	mkdir root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/sparc || true
 	mkdir root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/x86_64 || true
 
-	$(INSTALL) -c -m 755 resolvepath root/bin/resolvepath
+	$(INSTALL) -c -m 755 ./resolvepath ./root/bin/resolvepath
 
 	$(INSTALL) -c -m 755 ppc-cctools/as/driver_dir/driver root/$(CCTOOLS_LIBEXEC_SUFFIX)/as
 	$(INSTALL) -c -m 755 ppc-cctools/as/a386_dir/as root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/i386/as
@@ -186,21 +186,24 @@ install-cctools:
 	$(INSTALL) -c -m 755 ppc-cctools/as/appc_dir/as root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/ppc/as
 	$(INSTALL) -c -m 755 ppc-cctools/as/asparc_dir/as root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/sparc/as
 	$(INSTALL) -c -m 755 ppc-cctools/as/ax86_64_dir/as root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/x86_64/as
-	# $(SED) "s/@CMD_DIR@/bindir/" < triplet-as-skel.sh > root/bin/$(TRIPLET_)as
-	$(SED) "s/@CMD_DIR@/libexecdir/" < triplet-as-skel.sh > root/bin/$(TRIPLET_)as
+	$(SED) -e "s^@CMD_DIR@^libexecdir^;s^@RESOLVEPATH@^$(PWD_PREFIX)/bin/resolevpath^;" \
+		< triplet-as-skel.sh > root/bin/$(TRIPLET_)as
 	chmod 755 root/bin/$(TRIPLET_)as
 
 	$(INSTALL) -c -m 755 ppc-cctools/gprof/gprof.NEW root/bin/gprof
 
 	$(INSTALL) -c -m 755 ppc-cctools/ar/ar.NEW \
 		root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/ar
-	$(SED) -e "s/@CMD@/ar/" < triplet-cctool-skel.sh > root/bin/$(TRIPLET_)ar
+	$(SED) -e "s^@CMD@^ar^;s^@RESOLVEPATH@^$(PWD_PREFIX)/bin/resolvepath^;" \
+		< triplet-cctool-skel.sh > root/bin/$(TRIPLET_)ar
 	chmod 755 root/bin/$(TRIPLET_)ar
 	$(INSTALL) -c -m 755 ppc-cctools/misc/libtool.NEW \
 		root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools/libtool
 	( cd root/$(CCTOOLS_LIBEXEC_SUFFIX)/cctools && rm -f ranlib && ln -s libtool ranlib )
-	$(SED) "s/@CMD@/ranlib/"  < triplet-cctool-skel.sh > root/bin/$(TRIPLET_)ranlib
-	$(SED) "s/@CMD@/libtool/" < triplet-cctool-skel.sh > root/bin/$(TRIPLET_)libtool
+	$(SED) -e "s^@CMD@^ranlib^;s^@RESOLVEPATH@^$(PWD_PREFIX)/bin/resolvepath^;" \
+		< triplet-cctool-skel.sh > root/bin/$(TRIPLET_)ranlib
+	$(SED) -e "s^@CMD@^libtool^;s^@RESOLVEPATH@^$(PWD_PREFIX)/bin/resolvepath^;" \
+		< triplet-cctool-skel.sh > root/bin/$(TRIPLET_)libtool
 	chmod 755 root/bin/$(TRIPLET_)ranlib
 	chmod 755 root/bin/$(TRIPLET_)libtool
 
